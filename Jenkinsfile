@@ -1,61 +1,40 @@
 pipeline {
-    environment {
-      registry = "username/reponame"
-      registryCredential = 'credentials'
-  }
     agent any
-    tools {
-        maven 'maven-3.5.4'
-        jdk 'Java'
-    }
+
     stages {
-        stage('git clone') {
+        stage ('git checkout') {
             steps {
-                git credentialsId: 'git-pwd', url: 'https://github.com/Angelaroy/demo-java.git'
-                echo "Successful"
+                git credentialsId: 'github', url: 'https://github.com/Angelsroy/Demo-pipeline.git'
             }
         }
+        
         stage ('Maven Build') {
             steps {
-                bat label: '', script: 'mvn -Dmaven.test.failure.ignore=true install'
-                echo "War file created successfully"
+                sh 'mvn clean install'
             }
         }
-
-        stage('Build dockerfile') {
+        
+        stage ('Remove old container') {
             steps {
-                echo "Starting to build docker image"
-                git 'https://github.com/Angelaroy/demo-java.git'
-                powershell label: '', script: 'docker build -t demo .'
-                echo "docker image created successfully"
+                sh 'docker stop $(docker ps -aq)'
+                echo 'stopped all containers'
+                sh 'docker stop $(docker ps -aq)'
+                echo 'removed all containers'
+                sh 'docker ps -a'
             }
         }
-        stage('Build container') {
+        
+        stage ('Docker build') {
             steps {
-                powershell label: '', script: 'docker run --name sample -p 9091:8080 -d demo'
-                echo "container created successfully"
+                sh 'docker build -t ${BUILD_NUMBER} .'
             }
         }
-        stage('Publish to Dockerhub') {
+        
+        stage ('Docker run') {
             steps {
-                withDockerRegistry([ credentialsId: "credentials", url: "" ]) {
-                  powershell label: '', script: 'docker commit -m "jenkins-commit" sample angela97/jenkins-test:trial'
-                  powershell label: '', script: 'docker push angela97/jenkins-test:trial'
-                  echo "Pushed to DockerHub Successfully"
-                  }
-            }
-       }
-        stage('kubectl verify') {
-            steps {
-                powershell label: '', script: 'kubectl version'
-                echo "Verified"
+                sh 'docker run -it -d -p 8090:8080 ${BUILD_NUMBER}'
             }
         }
-        stage ('Helm deploy') {
-            steps {
-                git 'https://github.com/Angelaroy/helm-tomcat.git'
-                powershell label: '', script: 'helm install --name tomcat-app tomcat-app'
-           }
-       }
+        
     }
 }
