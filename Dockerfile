@@ -12,7 +12,7 @@ RUN chgrp -R tomcat /opt/tomcat
 RUN chmod -R g+r conf
 RUN chmod g+x conf
 RUN chown -R tomcat webapps/ work/ temp/ logs/ bin/
-COPY ./tomcat-users.xml /opt/tomcat/conf/
+#COPY ./tomcat-users.xml /opt/tomcat/conf/
 COPY target/demo.war /opt/tomcat/webapps/
 CMD ["/opt/tomcat/bin/catalina.sh", "run"]
 #CMD ["/opt/tomcat/bin/startup.sh", "run"]
