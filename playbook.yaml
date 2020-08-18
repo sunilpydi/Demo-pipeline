@@ -1,0 +1,72 @@
+---
+- hosts: apache
+  become: yes
+  tasks:
+  - name: Install Java
+    yum:
+      name: "java-1.8.0-openjdk"
+      state: present
+
+  - name: Check if tomcat is already installed
+    stat:
+      path: "/opt/apache-tomcat-8.5.57"
+    register: is_installed
+
+  - name: Create group tomcat
+    group:
+      name: "tomcat"
+      state: present
+
+  - name: Create user tomcat
+    user:
+      name: "tomcat"
+      group: "tomcat"
+      state: present
+
+  - name: Create temp directory
+    file:
+      path: '/tmp/'
+      state: directory
+    when: not is_installed.stat.exists
+
+  - name: Download apache-tomcat-8.5.42.tar.gz
+    get_url:
+      url: "http://apachemirror.wuchna.com/tomcat/tomcat-8/v8.5.57/bin/apache-tomcat-8.5.57.tar.gz"
+      dest: '/tmp/'
+      timeout: 120
+    when: not is_installed.stat.exists
+
+  - name: Unarchive apache-tomcat-8.5.57.tar.gz
+    unarchive:
+      src: "/tmp/apache-tomcat-8.5.57.tar.gz"
+      dest: "/opt"
+      remote_src: True
+      creates: "/opt/apache-tomcat-8.5.57"
+    register: tomcat_installed
+    when: not is_installed.stat.exists
+
+  - name: Clean up temporary files
+    file:
+      path: '/tmp'
+      state: absent
+    changed_when: False
+    when: not is_installed.stat.exists
+
+  - name: install maven
+    yum:
+      name: maven
+      state: present
+  - name: Maven build
+    shell: "mvn clean install -f /home/ec2-user/Demo-pipeline/pom.xml"
+
+  - name: copy war file
+    shell: cp /home/ec2-user/Demo-pipeline/target/demo.war /opt/apache-tomcat-8.5.57/webapps/demo.war
+
+#  - name: copy war file
+#    synchronize: src=/home/ec2-user/demo.war dest=/opt/apache-tomcat-8.5.57/webapps/demo.war
+
+  - name: Start tomcat
+    shell: |
+      /opt/apache-tomcat-8.5.57/bin/startup.sh
+      sleep 5
+      echo 'tomcat started'
