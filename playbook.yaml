@@ -57,13 +57,13 @@
       name: maven
       state: present
   - name: Maven build
-    shell: "mvn clean install -f /home/ec2-user/Demo-pipeline/pom.xml"
-
-  - name: copy war file
-    shell: cp /home/ec2-user/Demo-pipeline/target/demo.war /opt/apache-tomcat-8.5.57/webapps/demo.war
+    shell: "mvn clean install -f pom.xml"
 
 #  - name: copy war file
-#    synchronize: src=/home/ec2-user/demo.war dest=/opt/apache-tomcat-8.5.57/webapps/demo.war
+#    shell: cp /home/ec2-user/Demo-pipeline/target/demo.war /opt/apache-tomcat-8.5.57/webapps/demo.war
+
+  - name: copy war file
+    synchronize: src=/target/demo.war dest=/opt/apache-tomcat-8.5.57/webapps/demo.war
 
   - name: Start tomcat
     shell: |
