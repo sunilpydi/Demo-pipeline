@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        registry = '990577712768.dkr.ecr.us-east-1.amazonaws.com/myrepo'
+        registry = '******.***.ecr.us-east-1.amazonaws.com/myrepo'
     }
     stages {
         stage ('git checkout') {
@@ -28,7 +28,7 @@ pipeline {
         
         stage ('Docker build') {
             steps {
-                sh 'docker build -t 990577712768.dkr.ecr.us-east-1.amazonaws.com/myrepo:tomcat-${BUILD_NUMBER} .'
+                sh 'docker build -t ******.***.ecr.us-east-1.amazonaws.com/myrepo:tomcat-${BUILD_NUMBER} .'
             }
         }
         
@@ -36,14 +36,14 @@ pipeline {
             steps {
                 withAWS(credentials:'Jenkins_AWS') {  
                     sh 'eval $(aws ecr get-login --region us-east-1 --no-include-email)'
-                    sh 'docker push 990577712768.dkr.ecr.us-east-1.amazonaws.com/myrepo:tomcat-${BUILD_NUMBER}'
+                    sh 'docker push ******.***.ecr.us-east-1.amazonaws.com/myrepo:tomcat-${BUILD_NUMBER}'
             	}
             }
     	}       
         
         stage ('Docker run') {
             steps {
-                sh 'docker run --name tomcat -d -it -p 8090:8080 990577712768.dkr.ecr.us-east-1.amazonaws.com/myrepo:tomcat-${BUILD_NUMBER}'
+                sh 'docker run --name tomcat -d -it -p 8090:8080 ******.***.ecr.us-east-1.amazonaws.com/myrepo:tomcat-${BUILD_NUMBER}'
             }
         }
     }
